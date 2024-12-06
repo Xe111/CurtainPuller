@@ -122,7 +122,7 @@ class MsgPackDeserializer {
       case 0xcf:
 #if ARDUINOJSON_USE_LONG_LONG
         if (allowValue)
-          return readInteger<uint64_t>(variant);
+          return readInteger<uint32_t>(variant);
         else
           return skipBytes(8);
 #else

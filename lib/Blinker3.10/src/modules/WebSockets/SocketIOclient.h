@@ -83,7 +83,7 @@ class SocketIOclient : protected WebSocketsClient {
 
   protected:
     bool _disableHeartbeat  = false;
-    uint64_t _lastHeartbeat = 0;
+    uint32_t _lastHeartbeat = 0;
     SocketIOclientEvent _cbEvent;
     virtual void runIOCbEvent(socketIOmessageType_t type, uint8_t * payload, size_t length) {
         if(_cbEvent) {

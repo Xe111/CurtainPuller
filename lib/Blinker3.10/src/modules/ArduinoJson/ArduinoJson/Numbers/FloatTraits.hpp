@@ -20,10 +20,11 @@ struct FloatTraits {};
 
 template <typename T>
 struct FloatTraits<T, 8 /*64bits*/> {
-  typedef uint64_t mantissa_type;
+  typedef uint32_t mantissa_type;
   static const short mantissa_bits = 52;
   static const mantissa_type mantissa_max =
-      (mantissa_type(1) << mantissa_bits) - 1;
+      //(mantissa_type(1) << mantissa_bits) - 1;
+      (uint64_t(1) << mantissa_bits) - 1;
 
   typedef int16_t exponent_type;
   static const exponent_type exponent_max = 308;
@@ -124,7 +125,7 @@ struct FloatTraits<T, 8 /*64bits*/> {
   // we use this function to workaround platforms with single precision literals
   // (for example, when -fsingle-precision-constant is passed to GCC)
   static T forge(uint32_t msb, uint32_t lsb) {
-    return alias_cast<T>((uint64_t(msb) << 32) | lsb);
+    return alias_cast<T>((uint32_t(msb) << 32) | lsb);
   }
 };
 
