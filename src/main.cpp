@@ -35,20 +35,21 @@
 char auth[] = "b06b42bba5c3";
 
 
+#define wifi_choice  3
 
-#define hotspot_wifi
-#ifdef router_wifi
-
+#if (wifi_choice == 1)
 char ssid[] = "WIFI_C912";
 char pswd[] = "17705003103"; // 配置wifi
-
 #endif
 
-#ifdef hotspot_wifi
-
+#if (wifi_choice == 2)
 char ssid[] = "Xe123";
 char pswd[] = "91215225825"; // 配置wifi
+#endif
 
+#if (wifi_choice == 3)
+char ssid[] = "Note12";
+char pswd[] = "12345678"; 
 #endif
 
 
