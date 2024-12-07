@@ -21,8 +21,6 @@
 
  // Github 上传测试
 
- //111
-
 #pragma region Preparation
 
 #include <Arduino.h>
@@ -37,7 +35,7 @@
 char auth[] = "b06b42bba5c3";
 
 
-#define wifi_choice  3
+#define wifi_choice  1
 
 #if (wifi_choice == 1)
 char ssid[] = "WIFI_C912";
