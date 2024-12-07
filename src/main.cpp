@@ -4,6 +4,19 @@
 
 */
 
+/*TODO
+2. 功能
+	1. 维护窗帘状态
+	2. 手机界面优化
+	3. 点按(再按停止)/长按
+	4. 进度条改变窗帘状态
+	5. 窗帘状态显示
+	6. 窗帘状态数据收集功能
+		1. 使用Blinker 怎么存储数据？
+	7. 复位
+  8. use_led 手机端控制
+  */
+
 #pragma region Preparation
 
 #include <Arduino.h>
@@ -16,8 +29,24 @@
 #define DEBUG true
 
 char auth[] = "b06b42bba5c3";
+
+
+
+#define hotspot_wifi
+#ifdef router_wifi
+
 char ssid[] = "WIFI_C912";
 char pswd[] = "17705003103"; // 配置wifi
+
+#endif
+
+#ifdef hotspot_wifi
+
+char ssid[] = "Xe123";
+char pswd[] = "91215225825"; // 配置wifi
+
+#endif
+
 
 #pragma endregion Preparation
 
@@ -185,6 +214,8 @@ void CP::halt()
 }
 void CP::pull(double target_state)
 {
+  //if()
+
   double state_diff = (target_state - curtain_state);
   if (DEBUG)
   {
