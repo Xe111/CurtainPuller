@@ -6,20 +6,18 @@
 
 /*TODO
 2. 功能
-	1. 维护窗帘状态
-	2. 手机界面优化
-	3. 点按(再按停止)/长按
-	4. 进度条改变窗帘状态
-	5. 窗帘状态显示
-	6. 窗帘状态数据收集功能
-		1. 使用Blinker 怎么存储数据？
-	7. 复位
+  1. 维护窗帘状态
+  2. 手机界面优化
+  3. 点按(再按停止)/长按
+  4. 进度条改变窗帘状态
+  5. 窗帘状态显示
+  6. 窗帘状态数据收集功能
+    1. 使用Blinker 怎么存储数据？
+  7. 复位
   8. use_led 手机端控制
   */
 
-
-
- // Github 上传测试
+// Github 上传测试
 
 #pragma region Preparation
 
@@ -34,8 +32,7 @@
 
 char auth[] = "b06b42bba5c3";
 
-
-#define wifi_choice  1
+#define wifi_choice 2
 
 #if (wifi_choice == 1)
 char ssid[] = "WIFI_C912";
@@ -49,9 +46,8 @@ char pswd[] = "91215225825"; // 配置wifi
 
 #if (wifi_choice == 3)
 char ssid[] = "Note12";
-char pswd[] = "12345678"; 
+char pswd[] = "12345678";
 #endif
-
 
 #pragma endregion Preparation
 
@@ -81,9 +77,10 @@ private:
     BlinkerButton btn_up;
     BlinkerButton btn_dn;
     BlinkerButton btn_dbg;
+    BlinkerButton btn_rst;
     BlinkerSlider sld_tg; // target
 
-    Blk() : btn_up("btn_up"), btn_dn("btn_dn"), btn_dbg("btn_dbg"), sld_tg("ran-tg") {} // 初始化按钮
+    Blk() : btn_up("btn_up"), btn_dn("btn_dn"), btn_dbg("btn_dbg"), btn_rst("btn_rst"), sld_tg("ran-tg") {} // 初始化按钮
     ~Blk() = default;
 
   } blk;
@@ -93,10 +90,12 @@ private:
   void _btn_up(const String &state);                 // 按钮拉起窗帘的回调函数
   void _btn_dn(const String &state);                 // 按钮拉下窗帘的回调函数
   void _btn_dbg(const String &state);                // 按钮调试的回调函数
-  void _sld_tg(int32_t data);                        // 
+  void _btn_rst(const String &state);                // 按钮复位的回调函数
+  void _sld_tg(int32_t data);                        //
   static void _btn_up_wrapper(const String &state);  // 按钮拉起窗帘的回调函数的包装函数，成员函数不能直接作为回调函数，所以需要一个包装函数
   static void _btn_dn_wrapper(const String &state);  // 按钮拉下窗帘的回调函数的包装函数
   static void _btn_dbg_wrapper(const String &state); // 按钮调试的回调函数的包装函数
+  static void _btn_rst_wrapper(const String &state); // 按钮复位的回调函数的包装函数
   static void _sld_tg_wrapper(int32_t data);         // rgb调试的回调函数的包装函数
 
   static void halt_wrapper(); // 停止窗帘的回调函数
@@ -170,6 +169,7 @@ void CP::attach()
   blk.btn_up.attach(_btn_up_wrapper);
   blk.btn_dn.attach(_btn_dn_wrapper);
   blk.btn_dbg.attach(_btn_dbg_wrapper);
+  blk.btn_rst.attach(_btn_rst_wrapper);
   blk.sld_tg.attach(_sld_tg_wrapper);
 }
 
@@ -219,7 +219,7 @@ void CP::halt()
 }
 void CP::pull(double target_state)
 {
-  //if()
+  // if()
 
   double state_diff = (target_state - curtain_state);
   if (DEBUG)
@@ -360,9 +360,30 @@ void CP::_btn_dbg(const String &state)
   BLINKER_LOG("DEBUG_INFO:-----------------------------------------------------------");
 }
 
+void CP::_btn_rst(const String &state)
+{
+  if (state == "tap" || state == "press")
+  {
+    halt();
+    motion_state = 'h';
+    curtain_state = 1.0;
+
+  }
+  else
+  {
+    if (DEBUG)
+    {
+      BLINKER_LOG("-------------------- in reset -------------------");
+      BLINKER_LOG("tap or press to reset");
+      BLINKER_LOG("-------------------- in reset -------------------");
+    }
+  }
+}
+
 void CP::_sld_tg(int32_t data)
 {
-  if(DEBUG)BLINKER_LOG("get slider data: ", data);
+  if (DEBUG)
+    BLINKER_LOG("get slider data: ", data);
   pull((static_cast<double>(data) / 100.0));
 }
 
@@ -380,6 +401,12 @@ void CP::_btn_dbg_wrapper(const String &state)
 {
   if (instance)
     instance->_btn_dbg(state);
+}
+
+void CP::_btn_rst_wrapper(const String &state)
+{
+  if (instance)
+    instance->_btn_rst(state);
 }
 
 void CP::_sld_tg_wrapper(int32_t data)
