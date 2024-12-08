@@ -382,10 +382,13 @@ void CP::_btn_led(const String &state)
   if (state == BLINKER_CMD_ON)
   {
     use_led = true;
+    blk.btn_led.print(BLINKER_CMD_ON);
   }
   else if(state == BLINKER_CMD_OFF)
   {
     use_led = false;
+    digitalWrite(LED_BUILTIN, LOW);
+    blk.btn_led.print(BLINKER_CMD_OFF);
   }
   else
   {
