@@ -12,7 +12,7 @@
 
 char auth[] = "b06b42bba5c3";
 
-#define wifi_choice 2
+#define wifi_choice 3
 
 #if (wifi_choice == 1)
 char ssid[] = "WIFI_C912";
@@ -60,8 +60,9 @@ private:
     BlinkerButton btn_rst;
     BlinkerButton btn_led;
     BlinkerSlider sld_tg; // target
+    BlinkerSlider sld_sta; // state monitor
 
-    Blk() : btn_up("btn_up"), btn_dn("btn_dn"), btn_dbg("btn_dbg"), btn_rst("btn_rst"),btn_led("btn_led"),sld_tg("ran_tg") 
+    Blk() : btn_up("btn_up"), btn_dn("btn_dn"), btn_dbg("btn_dbg"), btn_rst("btn_rst"),btn_led("btn_led"),sld_tg("ran_tg"), sld_sta("ran_sta")
     {
       
     } // 初始化按钮
@@ -205,6 +206,7 @@ void CP::halt()
   }
 
   motion_state = 'h';
+  blk.sld_sta.print(int(curtain_state*100));
 
   if (DEBUG)
   {
@@ -262,6 +264,7 @@ void CP::pullup(uint32_t time_diff = 0)
   {
     start_timer(time_diff);
   }
+  blk.sld_sta.print(int(curtain_state*100));
 }
 void CP::pulldn(uint32_t time_diff = 0)
 {
@@ -289,6 +292,7 @@ void CP::pulldn(uint32_t time_diff = 0)
   {
     start_timer(time_diff);
   }
+  blk.sld_sta.print(int(curtain_state*100));
 }
 
 void CP::start_timer(uint32_t elapsed_time)
