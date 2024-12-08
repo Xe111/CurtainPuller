@@ -1,3 +1,11 @@
+/*
+更改文件1
+*/
+
+/*
+更改文件2
+*/
+
 #pragma region Preparation
 
 #include <Arduino.h>
@@ -8,6 +16,10 @@
 #include <Blinker.h>
 
 #define DEBUG true
+
+/*
+更改文件2
+*/
 
 char auth[] = "b06b42bba5c3";
 
@@ -85,6 +97,7 @@ private:
   inline void pulldn(uint32_t time_diff);  // 拉下窗帘
   void start_timer(uint32_t elapsed_time); // 开始计时
   uint32_t stop_timer();                   // 停止计时
+  void print_state();                      // 打印窗帘的状态
 
 public:
   CurtainPuller() : blk(), time_pullup(100 * 1e3), pulldown_coef(0.9), motion_state('h'),
@@ -342,22 +355,24 @@ void CP::_btn_dbg(const String &state)
 
 void CP::_btn_rst(const String &state)
 {
-  if (state == "tap" || state == "press")
-  {
+    if (DEBUG)
+    {
+      BLINKER_LOG("-------------------- in reset -------------------");
+      print_state();
+      BLINKER_LOG("-------------------- in reset -------------------");
+    }
+
+
     halt();
     motion_state = 'h';
     curtain_state = 1.0;
 
-  }
-  else
-  {
     if (DEBUG)
     {
       BLINKER_LOG("-------------------- in reset -------------------");
-      BLINKER_LOG("tap or press to reset");
+      print_state();
       BLINKER_LOG("-------------------- in reset -------------------");
     }
-  }
 }
 
 void CP::_sld_tg(int32_t data)
@@ -401,4 +416,11 @@ void IRAM_ATTR CP::halt_wrapper()
     instance->halt();
 }
 
+void CP::print_state()
+{
+  BLINKER_LOG("DEBUG_INFO:-----------------------------------------------------------");
+  BLINKER_LOG("DEBUG_INFO:curtain_state: ", curtain_state);
+  BLINKER_LOG("DEBUG_INFO:motion_state: ", motion_state);
+  BLINKER_LOG("DEBUG_INFO:-----------------------------------------------------------");
+}
 #pragma endregion CP def
