@@ -61,7 +61,7 @@ private:
     BlinkerButton btn_led;
     BlinkerSlider sld_tg; // target
 
-    Blk() : btn_up("btn_up"), btn_dn("btn_dn"), btn_dbg("btn_dbg"), btn_rst("btn_rst"),btn_led("btn_led"),sld_tg("ran-tg") 
+    Blk() : btn_up("btn_up"), btn_dn("btn_dn"), btn_dbg("btn_dbg"), btn_rst("btn_rst"),btn_led("btn_led"),sld_tg("ran_tg") 
     {
       
     } // 初始化按钮
