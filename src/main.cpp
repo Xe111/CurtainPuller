@@ -101,6 +101,7 @@ public:
 using CP = CurtainPuller;
 
 CP cp;
+#pragma endregion CP dec
 
 #pragma region Setup&Loop
 
@@ -299,7 +300,7 @@ uint32_t CP::stop_timer()
 
 void CP::_btn_up(const String &state)
 {
-  if (state == "tap")
+  if (state == "tap" && motion_state == 'h')
   {
     pull(0);
   }
@@ -315,7 +316,7 @@ void CP::_btn_up(const String &state)
 
 void CP::_btn_dn(const String &state)
 {
-  if (state == "tap")
+  if (state == "tap" && motion_state == 'h')
   {
     pull(1);
   }
@@ -400,4 +401,4 @@ void IRAM_ATTR CP::halt_wrapper()
     instance->halt();
 }
 
-#pragma endregion CP
+#pragma endregion CP def
