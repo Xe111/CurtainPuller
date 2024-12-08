@@ -186,9 +186,8 @@ void CP::halt()
 
   if (DEBUG)
   {
-    BLINKER_LOG("-------------------- in halt -------------------");
+    BLINKER_LOG("================================== in function halt ==================================");
     BLINKER_LOG("time_diff: ", time_diff);
-    BLINKER_LOG("-------------------- in halt -------------------");
   }
   double state_diff = static_cast<double>(time_diff) / time_pullup;
 
@@ -209,6 +208,11 @@ void CP::halt()
   }
 
   motion_state = 'h';
+
+  if (DEBUG)
+  {
+    BLINKER_LOG("================================== in function halt ==================================");
+  }
 }
 void CP::pull(double target_state)
 {
@@ -217,9 +221,9 @@ void CP::pull(double target_state)
   double state_diff = (target_state - curtain_state);
   if (DEBUG)
   {
-    BLINKER_LOG("-------------------- in pull -------------------");
+    BLINKER_LOG("================================== in function pull ==================================");
     BLINKER_LOG("state diff: ", state_diff);
-    BLINKER_LOG("-------------------- in pull -------------------");
+    BLINKER_LOG("================================== in function pull ==================================");
   }
   if (state_diff > 0)
   {
@@ -239,9 +243,9 @@ void CP::pullup(uint32_t time_diff = 0)
 {
   if (DEBUG)
   {
-    BLINKER_LOG("-------------------- in pull up -------------------");
+    BLINKER_LOG("================================== in function pullup ==================================");
     BLINKER_LOG("time_diff: ", time_diff);
-    BLINKER_LOG("-------------------- in pull up -------------------");
+    BLINKER_LOG("================================== in function pullup ==================================");
   }
   if (motion_state != 'h')
     return;
@@ -265,9 +269,12 @@ void CP::pullup(uint32_t time_diff = 0)
 void CP::pulldn(uint32_t time_diff = 0)
 {
 
-  BLINKER_LOG("-------------------- in pull down -------------------");
-  BLINKER_LOG("time_diff: ", time_diff);
-  BLINKER_LOG("-------------------- in pull down -------------------");
+  if (DEBUG)
+  {
+    BLINKER_LOG("================================== in function pulldn ==================================");
+    BLINKER_LOG("time_diff: ", time_diff);
+    BLINKER_LOG("================================== in function pulldn ==================================");
+  }
   if (motion_state != 'h')
     return;
 
@@ -301,9 +308,9 @@ uint32_t CP::stop_timer()
   uint32_t time_diff = millis() - start_time;
   if (DEBUG)
   {
-    BLINKER_LOG("================================== in stop timer ==================================");
+    BLINKER_LOG("================================== in function stop_timer ==================================");
     BLINKER_LOG("time_diff: ", time_diff);
-    BLINKER_LOG("================================== in stop timer ==================================");
+    BLINKER_LOG("================================== in function stop_timer ==================================");
   }
   timer->stop();
   delete timer;
@@ -346,22 +353,19 @@ void CP::_btn_dn(const String &state)
 void CP::_btn_dbg(const String &state)
 {
 
-  BLINKER_LOG("get button state: ", state);
-  BLINKER_LOG("DEBUG_INFO:-----------------------------------------------------------");
-  BLINKER_LOG("DEBUG_INFO:curtain_state: ", curtain_state);
-  BLINKER_LOG("DEBUG_INFO:motion_state: ", motion_state);
-  BLINKER_LOG("DEBUG_INFO:-----------------------------------------------------------");
+  BLINKER_LOG("================================== in function debug ==================================");
+  print_state();
+  BLINKER_LOG("================================== in function debug ==================================");
 }
 
 void CP::_btn_rst(const String &state)
 {
-    if (DEBUG)
-    {
-      BLINKER_LOG("-------------------- in reset -------------------");
-      print_state();
-      BLINKER_LOG("-------------------- in reset -------------------");
-    }
 
+  if (DEBUG)
+  {
+    BLINKER_LOG("================================== in function reset ==================================");
+    print_state();
+    BLINKER_LOG("================================== in function reset ==================================");
 
     halt();
     motion_state = 'h';
@@ -369,16 +373,23 @@ void CP::_btn_rst(const String &state)
 
     if (DEBUG)
     {
-      BLINKER_LOG("-------------------- in reset -------------------");
+      BLINKER_LOG("================================== in function reset ==================================");
       print_state();
-      BLINKER_LOG("-------------------- in reset -------------------");
+      BLINKER_LOG("================================== in function reset ==================================");
     }
+  }
 }
 
 void CP::_sld_tg(int32_t data)
 {
+
   if (DEBUG)
-    BLINKER_LOG("get slider data: ", data);
+  {
+    BLINKER_LOG("================================== in function sld_tg ==================================");
+    BLINKER_LOG("data: ", data);
+    BLINKER_LOG("================================== in function sld_tg ==================================");
+  }
+
   pull((static_cast<double>(data) / 100.0));
 }
 
