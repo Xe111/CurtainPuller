@@ -1,10 +1,3 @@
-/*
-更改文件1
-*/
-
-/*
-更改文件2
-*/
 
 #pragma region Preparation
 
@@ -16,10 +9,6 @@
 #include <Blinker.h>
 
 #define DEBUG true
-
-/*
-更改文件2
-*/
 
 char auth[] = "b06b42bba5c3";
 
@@ -69,9 +58,13 @@ private:
     BlinkerButton btn_dn;
     BlinkerButton btn_dbg;
     BlinkerButton btn_rst;
+    BlinkerButton btn_led;
     BlinkerSlider sld_tg; // target
 
-    Blk() : btn_up("btn_up"), btn_dn("btn_dn"), btn_dbg("btn_dbg"), btn_rst("btn_rst"), sld_tg("ran-tg") {} // 初始化按钮
+    Blk() : btn_up("btn_up"), btn_dn("btn_dn"), btn_dbg("btn_dbg"), btn_rst("btn_rst"),btn_led("btn_led"),sld_tg("ran-tg") 
+    {
+      
+    } // 初始化按钮
     ~Blk() = default;
 
   } blk;
@@ -82,11 +75,13 @@ private:
   void _btn_dn(const String &state);                 // 按钮拉下窗帘的回调函数
   void _btn_dbg(const String &state);                // 按钮调试的回调函数
   void _btn_rst(const String &state);                // 按钮复位的回调函数
+  void _btn_led(const String &state);                // 按钮复位的回调函数
   void _sld_tg(int32_t data);                        //
   static void _btn_up_wrapper(const String &state);  // 按钮拉起窗帘的回调函数的包装函数，成员函数不能直接作为回调函数，所以需要一个包装函数
   static void _btn_dn_wrapper(const String &state);  // 按钮拉下窗帘的回调函数的包装函数
   static void _btn_dbg_wrapper(const String &state); // 按钮调试的回调函数的包装函数
   static void _btn_rst_wrapper(const String &state); // 按钮复位的回调函数的包装函数
+  static void _btn_led_wrapper(const String &state); // 按钮复位的回调函数的包装函数
   static void _sld_tg_wrapper(int32_t data);         // rgb调试的回调函数的包装函数
 
   static void halt_wrapper(); // 停止窗帘的回调函数
@@ -163,7 +158,9 @@ void CP::attach()
   blk.btn_dn.attach(_btn_dn_wrapper);
   blk.btn_dbg.attach(_btn_dbg_wrapper);
   blk.btn_rst.attach(_btn_rst_wrapper);
+  blk.btn_led.attach(_btn_led_wrapper);
   blk.sld_tg.attach(_sld_tg_wrapper);
+  
 }
 
 void CP::loop()
@@ -320,15 +317,15 @@ uint32_t CP::stop_timer()
 
 void CP::_btn_up(const String &state)
 {
-  if (state == "tap" && motion_state == 'h')
+  if (state == BLINKER_CMD_BUTTON_TAP && motion_state == 'h')
   {
     pull(0);
   }
-  else if (state == "press")
+  else if (state == BLINKER_CMD_BUTTON_PRESS)
   {
     pullup();
   }
-  else // pressup
+  else // BLINKER_CMD_BUTTON_PRESSUP
   {
     halt();
   }
@@ -336,11 +333,11 @@ void CP::_btn_up(const String &state)
 
 void CP::_btn_dn(const String &state)
 {
-  if (state == "tap" && motion_state == 'h')
+  if (state == BLINKER_CMD_BUTTON_TAP && motion_state == 'h')
   {
     pull(1);
   }
-  else if (state == "press")
+  else if (state == BLINKER_CMD_BUTTON_PRESS)
   {
     pulldn();
   }
@@ -380,6 +377,22 @@ void CP::_btn_rst(const String &state)
   }
 }
 
+void CP::_btn_led(const String &state)
+{
+  if (state == BLINKER_CMD_ON)
+  {
+    use_led = true;
+  }
+  else if(state == BLINKER_CMD_OFF)
+  {
+    use_led = false;
+  }
+  else
+  {
+    
+  }
+}
+
 void CP::_sld_tg(int32_t data)
 {
 
@@ -413,6 +426,12 @@ void CP::_btn_rst_wrapper(const String &state)
 {
   if (instance)
     instance->_btn_rst(state);
+}
+
+void CP::_btn_led_wrapper(const String &state)
+{
+  if (instance)
+    instance->_btn_led(state);
 }
 
 void CP::_sld_tg_wrapper(int32_t data)
