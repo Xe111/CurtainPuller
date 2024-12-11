@@ -79,12 +79,14 @@ private:
   void _btn_rst(const String &state);                // 按钮复位的回调函数
   void _btn_led(const String &state);                // 按钮复位的回调函数
   void _sld_tg(int32_t data);                        //
+  void _data_storage();              // 数据存储
   static void _btn_up_wrapper(const String &state);  // 按钮拉起窗帘的回调函数的包装函数，成员函数不能直接作为回调函数，所以需要一个包装函数
   static void _btn_dn_wrapper(const String &state);  // 按钮拉下窗帘的回调函数的包装函数
   static void _btn_dbg_wrapper(const String &state); // 按钮调试的回调函数的包装函数
   static void _btn_rst_wrapper(const String &state); // 按钮复位的回调函数的包装函数
   static void _btn_led_wrapper(const String &state); // 按钮复位的回调函数的包装函数
   static void _sld_tg_wrapper(int32_t data);         // rgb调试的回调函数的包装函数
+  static void _data_storage_wrapper(); // 数据存储的包装函数
 
   static void halt_wrapper(); // 停止窗帘的回调函数
 
@@ -161,6 +163,7 @@ void CP::attach()
   blk.btn_rst.attach(_btn_rst_wrapper);
   blk.btn_led.attach(_btn_led_wrapper);
   blk.sld_tg.attach(_sld_tg_wrapper);
+  Blinker.attachDataStorage(_data_storage_wrapper);
   
 }
 
@@ -413,6 +416,15 @@ void CP::_sld_tg(int32_t data)
   pull((static_cast<double>(data) / 100.0));
 }
 
+void CP::_data_storage()
+{
+  BLINKER_LOG("================================== in function data_storage ==================================");
+  BLINKER_LOG("curtain_state: ", curtain_state);
+  BLINKER_LOG("================================== in function data_storage ==================================");
+
+  Blinker.dataStorage("curtain_state", curtain_state);
+}
+
 void CP::_btn_up_wrapper(const String &state)
 {
   if (instance)
@@ -451,6 +463,12 @@ void IRAM_ATTR CP::halt_wrapper()
 {
   if (instance)
     instance->halt();
+}
+
+void CP::_data_storage_wrapper()
+{
+  if (instance)
+    instance->_data_storage();
 }
 
 void CP::print_state()
