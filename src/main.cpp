@@ -10,7 +10,8 @@
 
 #define DEBUG true
 
-char auth[] = "b06b42bba5c3";
+char auth[] = "b06b42bba5c3";  // NodeMCU-32S
+//char auth[] = "d25e869afcac";    // ESP32-DevKitC-32
 
 #define wifi_choice 3
 
@@ -108,7 +109,6 @@ public:
   void loop();   // 主循环
 };
 using CP = CurtainPuller;
-
 CP cp;
 #pragma endregion CP dec
 
