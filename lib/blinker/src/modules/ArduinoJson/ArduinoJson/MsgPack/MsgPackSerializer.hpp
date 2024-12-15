@@ -159,7 +159,7 @@ class MsgPackSerializer : public Visitor<size_t> {
 #if ARDUINOJSON_USE_LONG_LONG
     else {
       writeByte(0xCF);
-      writeInteger(uint32_t(value));
+      writeInteger(uint64_t(value));
     }
 #endif
     return bytesWritten();

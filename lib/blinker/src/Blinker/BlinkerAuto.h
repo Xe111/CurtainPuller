@@ -590,7 +590,7 @@ void BlinkerAUTO::deserialization()
         return;
     }
 
-    uint32_t auto_data;
+    uint64_t auto_data;
     
     EEPROM.get(BLINKER_EEP_ADDR_AUTO_START + 
                 a_num * BLINKER_ONE_AUTO_DATA_SIZE +
@@ -796,7 +796,7 @@ void BlinkerAUTO::deserialization()
 
 void BlinkerAUTO::serialization()
 {
-    uint32_t auto_data;
+    uint64_t auto_data;
 
     auto_data = _haveAuto & 0x01;
     auto_data = auto_data << 1 | _autoState & 0x01;    
