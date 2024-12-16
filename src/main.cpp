@@ -5,10 +5,10 @@ Preferences preferences;
 
 #pragma region 数据准备区
 
-    //char auth[] = "b06b42bba5c3";       // NodeMCU-32S
-    char auth[] = "d25e869afcac";       // ESP32-DevKitC
+    char auth[] = "b06b42bba5c3";       // NodeMCU-32S
+    //char auth[] = "d25e869afcac";       // ESP32-DevKitC
 
-    #define wifi_choice 4
+    #define wifi_choice 1
 
     #if (wifi_choice == 1)
     char ssid[] = "WIFI_C912";
@@ -130,11 +130,12 @@ void init()  // 初始化
     // 打印读取的值 
     Serial.printf("LED: %d, Motion State: %c, Curtain State: %.2f, Target State: %.2f\n", use_led, motion_state, curtain_state,target_state);
 
-    // 正确显示LED按钮状态
+    // 正确显示初始状态
     if (use_led)
         btn_led.print("on");
     else
         btn_led.print("off");
+    sld_tg.print(target_state);
 }
 void savePreferences() // 保存数据到EEPROM
 {
@@ -216,9 +217,11 @@ void _btn_led(const String &state) // LED灯按钮的回调函数
     if (state == "on") {
         use_led = true;
         btn_led.print("on");
+        digitalWrite(LED_BUILTIN, HIGH);
     } else {
         use_led = false;
         btn_led.print("off");
+        digitalWrite(LED_BUILTIN, LOW);
     }
 }
 void _btn_dbg(const String &state) // 按钮调试的回调函数
@@ -249,7 +252,8 @@ void rtData()       // 实时数据函数, 每秒执行一次
 
     Blinker.sendRtData("ran_sta", curtain_state);
     Blinker.printRtData();
-
+    savePreferences(); // 保存数据到EEPROM, 方便重启后恢复状态
+    // 根据当前状态执行相应动作
     if( motion_state == '+'){
         curtain_state += pulldn_speed;
         pulldn();
@@ -266,7 +270,9 @@ void rtData()       // 实时数据函数, 每秒执行一次
             halt();
         }
     }
-    savePreferences(); // 保存数据到EEPROM, 方便重启后恢复状态
+    if( motion_state == '0'){
+        digitalWrite(LED_BUILTIN, LOW);
+    }
 }
 
 #pragma endregion 函数定义区
