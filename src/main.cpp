@@ -1,41 +1,13 @@
 #define BLINKER_WIFI
 #include <Blinker.h>
 #include <Preferences.h>
-Preferences preferences;
-
-#pragma region 数据准备区
-
-    char auth[] = "b06b42bba5c3";       // NodeMCU-32S
-    //char auth[] = "d25e869afcac";       // ESP32-DevKitC
-
-    #define wifi_choice 1
-
-    #if (wifi_choice == 1)
-    char ssid[] = "WIFI_C912";
-    char pswd[] = "17705003103"; // 配置wifi
-    #endif
-
-    #if (wifi_choice == 2)
-    char ssid[] = "Xe123";
-    char pswd[] = "91215225825"; // 配置wifi
-    #endif
-
-    #if (wifi_choice == 3)
-    char ssid[] = "Note12";
-    char pswd[] = "12345678";
-    #endif
-
-    #if (wifi_choice == 4)
-    char ssid[] = "Win11";
-    char pswd[] = "12345678";
-    #endif
-
-#pragma endregion 数据准备区
+#include "device_config.h"
 
 
 #pragma region 全局变量区
 
     enum PIN { PWMA = A17, AIN2 = A16, AIN1 = A15, STBY = A14 };// 引脚对应关系
+
     bool use_led = true;             // 是否启用LED灯
     char motion_state = '0';         // 窗帘运动状态: '0':停机; '-':正在上拉; '+':正在下拉;
     double curtain_state = 100;       // 窗帘位置状态:  0 :全开; 100:全关
@@ -43,10 +15,7 @@ Preferences preferences;
     constexpr double pullup_time = 70; // 上拉时间
     constexpr double pulldn_coef = 1.3; // 下拉时间系数
 
-#pragma endregion 全局变量区
-
-
-#pragma region 按钮注册与函数声明区
+    Preferences preferences;          // 断电状态保存用到的库
 
     BlinkerSlider sld_sta("ran_sta"); // 当前状态滑动条
     BlinkerSlider sld_tg("ran_tg");   // 目标状态滑动条
@@ -55,6 +24,11 @@ Preferences preferences;
     BlinkerButton btn_dn("btn_dn");   // 下拉按钮
     BlinkerButton btn_dbg("btn_dbg"); // 调试按钮
     BlinkerButton btn_rst("btn_rst"); // 复位按钮
+
+#pragma endregion 全局变量区
+
+
+#pragma region 函数声明区
 
     void _btn_up(const String &state);  // 按钮拉起窗帘的回调函数
     void _btn_dn(const String &state);  // 按钮拉下窗帘的回调函数
@@ -69,9 +43,10 @@ Preferences preferences;
     void pulldn();                   // 拉下窗帘
 
     void init();                      // 初始化
-    void savePreferences();            // 保存配置
+    void savePreferences();           // 保存配置到EEPROM
     void rtData();                    // 实时数据上传函数, 每秒执行一次
     void DataStorage();               // 历史数据存储函数, 每分钟执行一次
+
     void attach_all()                 // 绑定所有回调函数
     {
         btn_up.attach(_btn_up);          // 绑定按钮回调函数
@@ -83,7 +58,8 @@ Preferences preferences;
         Blinker.attachDataStorage(DataStorage);   // 绑定历史数据存储函数
         Blinker.attachRTData(rtData);              // 绑定实时数据函数
     }
-#pragma endregion 按钮注册与函数声明区
+
+#pragma endregion 函数声明区
 
 
 #pragma region 主程序区
@@ -274,5 +250,5 @@ void rtData()       // 实时数据函数, 每秒执行一次
         digitalWrite(LED_BUILTIN, LOW);
     }
 }
-
+ 
 #pragma endregion 函数定义区
