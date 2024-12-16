@@ -16,6 +16,7 @@ enum PIN
 constexpr double pullup_time = 71;            // 上拉时间
 constexpr double pulldn_coef = 1.00;          // 下拉时间系数
 constexpr double default_curtain_state = 100; // 默认窗帘状态
+constexpr uint8_t update_cycle = 1U;          // 更新周期
 
 bool use_led = true;                          // 是否启用LED灯
 char motion_state = '0';                      // 窗帘运动状态: '0':停机; '-':正在上拉; '+':正在下拉;
@@ -48,11 +49,11 @@ void halt();   // 停止窗帘
 void pullup(); // 拉起窗帘
 void pulldn(); // 拉下窗帘
 
-    void init();                      // 初始化
-    void savePreferences();           // 保存数据到EEPROM
-    void loadPreferences();           // 从EEPROM加载数据
-    void rtData();                    // 实时数据上传函数, 每秒执行一次
-    void DataStorage();               // 历史数据存储函数, 每分钟执行一次
+void init();            // 初始化
+void savePreferences(); // 保存数据到EEPROM
+void loadPreferences(); // 从EEPROM加载数据
+void rtData();          // 实时数据上传函数, 每秒执行一次
+void DataStorage();     // 历史数据存储函数, 每分钟执行一次
 
 void show_motion_state(); // 显示窗帘运动状态
 
@@ -64,8 +65,8 @@ void attach_all() // 绑定所有回调函数
     btn_rst.attach(_btn_rst);
     btn_led.attach(_btn_led);
     sld_tg.attach(_sld_tg);
-    Blinker.attachDataStorage(DataStorage); // 绑定历史数据存储函数
-    Blinker.attachRTData(rtData);           // 绑定实时数据函数
+    Blinker.attachDataStorage(DataStorage);     // 绑定历史数据存储函数
+    Blinker.attachRTData(rtData, update_cycle); // 绑定实时数据函数
 }
 
 #pragma endregion 函数声明区
@@ -83,6 +84,7 @@ void setup()
 
 void loop()
 {
+    show_motion_state();
     Blinker.run();
 }
 
@@ -107,19 +109,20 @@ void init() // 初始化
     // 加载上次保存的状态
     loadPreferences();
     // 正确显示初始状态
-    if (use_led) btn_led.print("on");
-    else         btn_led.print("off");
+    if (use_led)
+        btn_led.print("on");
+    else
+        btn_led.print("off");
     sld_tg.print(target_state);
-
 }
 void loadPreferences() // 加载数据到EEPROM
 {
     preferences.begin("my_preferences", false);
-    use_led = preferences.getBool("use_led", true); 
-    motion_state = preferences.getChar("motion_state", '0'); 
-    curtain_state = preferences.getDouble("curtain_state", 50.0); 
-    target_state = preferences.getDouble("target_state", 50.0); 
-    
+    use_led = preferences.getBool("use_led", true);
+    motion_state = preferences.getChar("motion_state", '0');
+    curtain_state = preferences.getDouble("curtain_state", default_curtain_state);
+    target_state = preferences.getDouble("target_state", default_curtain_state);
+
     BLINKER_LOG("=========== 加载上次状态 =============");
     BLINKER_LOG("use_led: ", use_led);
     BLINKER_LOG("curtain_state: ", curtain_state);
@@ -133,7 +136,6 @@ void savePreferences() // 保存数据到EEPROM
     preferences.putChar("motion_state", motion_state);
     preferences.putDouble("curtain_state", curtain_state);
     preferences.putDouble("target_state", target_state);
-  
 }
 
 void halt() // 停止窗帘
@@ -246,9 +248,9 @@ void DataStorage() // 历史数据函数, 每分钟执行一次
     BLINKER_LOG("DataStorage: ", curtain_state);
     Blinker.dataStorage("ran_sta", curtain_state);
 }
-void rtData() // 实时数据函数, 每秒执行一次
+void rtData() // 实时数据函数, 每更新周期执行一次
 {
-    constexpr static double pullup_speed = 100 / pullup_time;
+    constexpr static double pullup_speed = 100 / pullup_time * update_cycle;
     constexpr static double pulldn_speed = pullup_speed * pulldn_coef;
 
     Blinker.sendRtData("ran_sta", curtain_state);
@@ -279,21 +281,21 @@ void rtData() // 实时数据函数, 每秒执行一次
     {
         digitalWrite(LED_BUILTIN, LOW);
     }
-
-    show_motion_state();
 }
 
 void show_motion_state()
 {
     const static String blinker_grey("#959595"); // blinker灰色
     const static String blinker_blue("#066EEF"); // blinker蓝色
-    
+
     static char last_motion_state = '0';
-    
-    constexpr static int resend_times = 3;
+
+    constexpr static int resend_times = 2;
     static int resend_count = 0;
 
-    if(motion_state != last_motion_state)
+    static Ticker ticker = Ticker();
+
+    if (motion_state != last_motion_state)
     {
         last_motion_state = motion_state;
         if (motion_state == '-')
@@ -311,15 +313,25 @@ void show_motion_state()
             btn_up.color(blinker_grey);
             btn_dn.color(blinker_grey);
         }
-        
+
         resend_count = resend_times;
     }
 
-    if(resend_count > 0)
+    if (resend_count > 0)
     {
+        if (resend_count == resend_times)
+        {
+            btn_up.print();
+            btn_dn.print();
+        }
+        else
+        {
+            ticker.once(0.5, []()
+                        {
+                btn_up.print();
+                btn_dn.print(); });
+        }
         resend_count--;
-        btn_up.print();
-        btn_dn.print();
     }
 }
 
