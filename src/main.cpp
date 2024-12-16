@@ -8,7 +8,7 @@ Preferences preferences;
     char auth[] = "b06b42bba5c3";       // NodeMCU-32S
     //char auth[] = "d25e869afcac";       // ESP32-DevKitC
 
-    #define wifi_choice 2
+    #define wifi_choice 1
 
     #if (wifi_choice == 1)
     char ssid[] = "WIFI_C912";
@@ -38,10 +38,10 @@ Preferences preferences;
     enum PIN { PWMA = A17, AIN2 = A16, AIN1 = A15, STBY = A14 };// 引脚对应关系
     bool use_led = true;             // 是否启用LED灯
     char motion_state = '0';         // 窗帘运动状态: '0':停机; '-':正在上拉; '+':正在下拉;
-    double curtain_state = 50;       // 窗帘位置状态:  0 :全开; 100:全关
-    double target_state = 50;        // 窗帘目标状态
-    constexpr double pullup_time = 10;
-    constexpr double pulldn_coef = 1.2;
+    double curtain_state = 100;       // 窗帘位置状态:  0 :全开; 100:全关
+    double target_state = 100;        // 窗帘目标状态
+    constexpr double pullup_time = 70; // 上拉时间
+    constexpr double pulldn_coef = 1.3; // 下拉时间系数
 
 #pragma endregion 全局变量区
 
@@ -235,8 +235,8 @@ void _btn_dbg(const String &state) // 按钮调试的回调函数
 void _btn_rst(const String &state) // 按钮复位的回调函数
 {
     motion_state = '0';
-    curtain_state = 50;
-    target_state = 50;
+    curtain_state = 100;
+    target_state = 100;
     halt();
 }
 
