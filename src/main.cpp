@@ -13,7 +13,7 @@
     double curtain_state = 100;       // 窗帘位置状态:  0 :全开; 100:全关
     double target_state = 100;        // 窗帘目标状态
     constexpr double pullup_time = 70; // 上拉时间
-    constexpr double pulldn_coef = 1.3; // 下拉时间系数
+    constexpr double pulldn_coef = 0.9; // 下拉时间系数
 
     Preferences preferences;          // 断电状态保存用到的库
 
