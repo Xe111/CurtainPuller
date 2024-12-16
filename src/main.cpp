@@ -1,5 +1,7 @@
 #define BLINKER_WIFI
 #include <Blinker.h>
+#include <Preferences.h>
+Preferences preferences;
 
 #pragma region 数据准备区
 
@@ -66,6 +68,7 @@
     void pulldn();                   // 拉下窗帘
 
     void init();                      // 初始化
+    void savePreferences();            // 保存配置
     void rtData();                    // 实时数据上传函数, 每秒执行一次
     void DataStorage();               // 历史数据存储函数, 每分钟执行一次
     void attach_all()                 // 绑定所有回调函数
@@ -117,11 +120,31 @@ void init()  // 初始化
     digitalWrite(AIN2, LOW);
     digitalWrite(LED_BUILTIN, LOW);
 
+    // 加载上次保存的状态
+    preferences.begin("my_preferences", false);
+    use_led = preferences.getBool("use_led", true); 
+    motion_state = preferences.getChar("motion_state", '0'); 
+    curtain_state = preferences.getDouble("curtain_state", 50.0); 
+    target_state = preferences.getDouble("target_state", 50.0); 
+    // 打印读取的值 
+    Serial.printf("LED: %d, Motion State: %c, Curtain State: %.2f, Target State: %.2f\n", use_led, motion_state, curtain_state,target_state);
+
+    
+    // 正确显示LED按钮状态
     if (use_led)
         btn_led.print("on");
     else
         btn_led.print("off");
     halt();
+
+
+}
+void savePreferences() // 保存数据到EEPROM
+{
+  preferences.putBool("use_led", use_led);
+  preferences.putChar("motion_state", motion_state);
+  preferences.putDouble("curtain_state", curtain_state);
+  preferences.putDouble("target_state", target_state);
 }
 
 void halt()   // 停止窗帘
@@ -222,12 +245,12 @@ void DataStorage()  // 历史数据函数, 每分钟执行一次
     Blinker.dataStorage("num_sta", curtain_state);
 }
 void rtData()       // 实时数据函数, 每秒执行一次
-{
+{/*
     BLINKER_LOG("=========== rtData =============");
     BLINKER_LOG("curtain_state: ", curtain_state);
     BLINKER_LOG("target_state: ", target_state);
     BLINKER_LOG("motion_state: ", motion_state);
-
+*/
     Blinker.sendRtData("num_sta", curtain_state);
     Blinker.sendRtData("ran_sta", curtain_state);
     Blinker.printRtData();
@@ -246,6 +269,7 @@ void rtData()       // 实时数据函数, 每秒执行一次
             halt();
         }
     }
+    savePreferences(); // 保存数据到EEPROM, 方便重启后恢复状态
 }
 
 #pragma endregion 函数定义区
