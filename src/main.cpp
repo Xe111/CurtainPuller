@@ -5,10 +5,10 @@ Preferences preferences;
 
 #pragma region 数据准备区
 
-    //char auth[] = "b06b42bba5c3";       // NodeMCU-32S
-    char auth[] = "d25e869afcac";       // ESP32-DevKitC
+    char auth[] = "b06b42bba5c3";       // NodeMCU-32S
+    //char auth[] = "d25e869afcac";       // ESP32-DevKitC
 
-    #define wifi_choice 4
+    #define wifi_choice 2
 
     #if (wifi_choice == 1)
     char ssid[] = "WIFI_C912";
@@ -40,13 +40,14 @@ Preferences preferences;
     char motion_state = '0';         // 窗帘运动状态: '0':停机; '-':正在上拉; '+':正在下拉;
     double curtain_state = 50;       // 窗帘位置状态:  0 :全开; 100:全关
     double target_state = 50;        // 窗帘目标状态
+    constexpr double pullup_time = 10;
+    constexpr double pulldn_coef = 1.2;
 
 #pragma endregion 全局变量区
 
 
 #pragma region 按钮注册与函数声明区
 
-    BlinkerNumber num_sta("num_sta"); // 当前状态数字
     BlinkerSlider sld_sta("ran_sta"); // 当前状态滑动条
     BlinkerSlider sld_tg("ran_tg");   // 目标状态滑动条
     BlinkerButton btn_led("btn_led"); // LED开关按钮
@@ -242,28 +243,31 @@ void _btn_rst(const String &state) // 按钮复位的回调函数
 void DataStorage()  // 历史数据函数, 每分钟执行一次
 {
     BLINKER_LOG("DataStorage: ", curtain_state);
-    Blinker.dataStorage("num_sta", curtain_state);
+    Blinker.dataStorage("ran_sta", curtain_state);
 }
 void rtData()       // 实时数据函数, 每秒执行一次
-{/*
+{
+    constexpr double pullup_speed = 100 / pullup_time;
+    constexpr double pulldn_speed = pullup_speed * pulldn_coef;
+
+
     BLINKER_LOG("=========== rtData =============");
     BLINKER_LOG("curtain_state: ", curtain_state);
     BLINKER_LOG("target_state: ", target_state);
     BLINKER_LOG("motion_state: ", motion_state);
-*/
-    Blinker.sendRtData("num_sta", curtain_state);
+
     Blinker.sendRtData("ran_sta", curtain_state);
     Blinker.printRtData();
 
     if( motion_state == '+'){
-        curtain_state += 1.2;
+        curtain_state += pulldn_speed;
         if( curtain_state >= target_state){
             curtain_state = target_state;
             halt();
         }
     }
     if( motion_state == '-'){
-        curtain_state -= 1;
+        curtain_state -= pullup_speed;
         if( curtain_state <= target_state){
             curtain_state = target_state;
             halt();
