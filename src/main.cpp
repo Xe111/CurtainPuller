@@ -5,10 +5,10 @@ Preferences preferences;
 
 #pragma region 数据准备区
 
-    char auth[] = "b06b42bba5c3";       // NodeMCU-32S
-    //char auth[] = "d25e869afcac";       // ESP32-DevKitC
+    //char auth[] = "b06b42bba5c3";       // NodeMCU-32S
+    char auth[] = "d25e869afcac";       // ESP32-DevKitC
 
-    #define wifi_choice 1
+    #define wifi_choice 4
 
     #if (wifi_choice == 1)
     char ssid[] = "WIFI_C912";
@@ -130,15 +130,11 @@ void init()  // 初始化
     // 打印读取的值 
     Serial.printf("LED: %d, Motion State: %c, Curtain State: %.2f, Target State: %.2f\n", use_led, motion_state, curtain_state,target_state);
 
-    
     // 正确显示LED按钮状态
     if (use_led)
         btn_led.print("on");
     else
         btn_led.print("off");
-    halt();
-
-
 }
 void savePreferences() // 保存数据到EEPROM
 {
@@ -154,6 +150,7 @@ void halt()   // 停止窗帘
     digitalWrite(AIN1, LOW);
     digitalWrite(AIN2, LOW);
     digitalWrite(LED_BUILTIN, LOW);
+    target_state = curtain_state;
     sld_tg.print(curtain_state);
 }
 void pullup() // 上拉窗帘
@@ -250,17 +247,12 @@ void rtData()       // 实时数据函数, 每秒执行一次
     constexpr double pullup_speed = 100 / pullup_time;
     constexpr double pulldn_speed = pullup_speed * pulldn_coef;
 
-
-    BLINKER_LOG("=========== rtData =============");
-    BLINKER_LOG("curtain_state: ", curtain_state);
-    BLINKER_LOG("target_state: ", target_state);
-    BLINKER_LOG("motion_state: ", motion_state);
-
     Blinker.sendRtData("ran_sta", curtain_state);
     Blinker.printRtData();
 
     if( motion_state == '+'){
         curtain_state += pulldn_speed;
+        pulldn();
         if( curtain_state >= target_state){
             curtain_state = target_state;
             halt();
@@ -268,6 +260,7 @@ void rtData()       // 实时数据函数, 每秒执行一次
     }
     if( motion_state == '-'){
         curtain_state -= pullup_speed;
+        pullup();
         if( curtain_state <= target_state){
             curtain_state = target_state;
             halt();
