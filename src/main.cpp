@@ -13,15 +13,22 @@ enum PIN
     STBY = A14
 }; // 引脚对应关系
 
+const String blinker_grey("#959595");  // blinker灰色
+const String blinker_blue("#066EEF");  // blinker蓝色
+const String blinker_red("#E90606");   // blinker红色
+const String blinker_green("#00AA09"); // blinker绿色
+
 constexpr double pullup_time = 71;            // 上拉时间
 constexpr double pulldn_coef = 1.00;          // 下拉时间系数
 constexpr double default_curtain_state = 100; // 默认窗帘状态
-constexpr uint8_t update_cycle = 1U;          // 更新周期
+constexpr float update_cycle = 1.0f;          // 更新周期
 
 bool use_led = true;                          // 是否启用LED灯
 char motion_state = '0';                      // 窗帘运动状态: '0':停机; '-':正在上拉; '+':正在下拉;
 double curtain_state = default_curtain_state; // 窗帘位置状态:  0 :全开; 100:全关
 double target_state = default_curtain_state;  // 窗帘目标状态
+bool is_resetting = false;                    // 是否正在复位
+Ticker update_ticker = Ticker();              // 更新周期定时器
 
 Preferences preferences; // 断电状态保存用到的库
 
@@ -54,8 +61,14 @@ void savePreferences(); // 保存数据到EEPROM
 void loadPreferences(); // 从EEPROM加载数据
 void rtData();          // 实时数据上传函数, 每秒执行一次
 void DataStorage();     // 历史数据存储函数, 每分钟执行一次
+void _update();         // 更新函数
 
 void show_motion_state(); // 显示窗帘运动状态
+
+// reset 相关
+void enable_reset_notice();  // 复位时进行提示
+void disable_reset_notice(); // 复位完成，取消提示
+void _reset_timeout();       // 复位超时回调函数
 
 void attach_all() // 绑定所有回调函数
 {
@@ -66,7 +79,7 @@ void attach_all() // 绑定所有回调函数
     btn_led.attach(_btn_led);
     sld_tg.attach(_sld_tg);
     Blinker.attachDataStorage(DataStorage);     // 绑定历史数据存储函数
-    Blinker.attachRTData(rtData, update_cycle); // 绑定实时数据函数
+    Blinker.attachRTData(rtData); // 绑定实时数据函数
 }
 
 #pragma endregion 函数声明区
@@ -114,6 +127,9 @@ void init() // 初始化
     else
         btn_led.print("off");
     sld_tg.print(target_state);
+
+    // 启动更新周期定时器
+    update_ticker.attach(update_cycle, _update);
 }
 void loadPreferences() // 加载数据到EEPROM
 {
@@ -192,18 +208,30 @@ void _btn_dn(const String &state) // 按钮拉下窗帘的回调函数
 }
 void _sld_tg(int32_t data) // 目标状态滑动条响应函数
 {
-    target_state = data;
-    if (target_state > curtain_state)
+    if (is_resetting)
     {
-        pulldn();
-    }
-    else if (target_state < curtain_state)
-    {
-        pullup();
+        curtain_state = data;
+        target_state = data;
+        disable_reset_notice();
+        sld_sta.print(curtain_state);
+        sld_tg.print(target_state);
+        is_resetting = false;
     }
     else
     {
-        halt();
+        target_state = data;
+        if (target_state > curtain_state)
+        {
+            pulldn();
+        }
+        else if (target_state < curtain_state)
+        {
+            pullup();
+        }
+        else
+        {
+            halt();
+        }
     }
 }
 
@@ -237,9 +265,11 @@ void _btn_dbg(const String &state) // 按钮调试的回调函数
 }
 void _btn_rst(const String &state) // 按钮复位的回调函数
 {
+    static Ticker ticker = Ticker();
     motion_state = '0';
-    curtain_state = default_curtain_state;
-    target_state = default_curtain_state;
+    is_resetting = true;
+    enable_reset_notice();
+    ticker.once(5, _reset_timeout);
     halt();
 }
 
@@ -250,11 +280,15 @@ void DataStorage() // 历史数据函数, 每分钟执行一次
 }
 void rtData() // 实时数据函数, 每更新周期执行一次
 {
+    Blinker.sendRtData("ran_sta", curtain_state);
+    Blinker.printRtData();
+}
+
+void _update()
+{
     constexpr static double pullup_speed = 100 / pullup_time * update_cycle;
     constexpr static double pulldn_speed = pullup_speed * pulldn_coef;
 
-    Blinker.sendRtData("ran_sta", curtain_state);
-    Blinker.printRtData();
     savePreferences(); // 保存数据到EEPROM, 方便重启后恢复状态
     // 根据当前状态执行相应动作
     if (motion_state == '+')
@@ -285,8 +319,6 @@ void rtData() // 实时数据函数, 每更新周期执行一次
 
 void show_motion_state()
 {
-    const static String blinker_grey("#959595"); // blinker灰色
-    const static String blinker_blue("#066EEF"); // blinker蓝色
 
     static char last_motion_state = '0';
 
@@ -335,4 +367,34 @@ void show_motion_state()
     }
 }
 
+void enable_reset_notice()
+{
+    btn_rst.color(blinker_grey);
+    btn_rst.text("正在重置中...");
+    btn_rst.print();
+
+    sld_tg.color(blinker_grey);
+    sld_tg.print(100);
+}
+void disable_reset_notice()
+{
+    btn_rst.color(blinker_red);
+    btn_rst.text("重置");
+    btn_rst.print();
+
+    sld_tg.color(blinker_blue);
+    sld_tg.print(100);
+}
+void _reset_timeout()
+{
+    if (is_resetting)
+    {
+        curtain_state = default_curtain_state;
+        target_state = default_curtain_state;
+        disable_reset_notice();
+        sld_tg.print(target_state);
+        sld_sta.print(curtain_state);
+        is_resetting = false;
+    }
+}
 #pragma endregion 函数定义区
